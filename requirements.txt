@@ -2,7 +2,10 @@ backports-abc==0.4
 Mesa==0.7.0
 numpy==1.11.0
 pandas==0.18.0
+psycopg2==2.6.1
 python-dateutil==2.5.2
 pytz==2016.3
+PyYAML==3.11
 six==1.10.0
+SQLAlchemy==1.0.12
 tornado==4.3
