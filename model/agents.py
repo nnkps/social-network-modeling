@@ -25,5 +25,4 @@ class UserAgent(Agent):
 	def step(self, model):
 		number_of_posts = self.how_many_posts(model.step_duration)
 		logging.info('User %s should write %d posts', self.name, number_of_posts)
-		# print('User %s should write %d posts' % (self.name, number_of_posts))
 		# TODO: inserting posts

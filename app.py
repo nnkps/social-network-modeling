@@ -13,11 +13,10 @@ if __name__ == '__main__':
 	# TODO: map postgres data to nosql? local sqlite? for later inserts
 	session = Session()
 
-	# take subset of posts and authors from database (first 100)
+	# take subset of posts and authors from database (first 1000)
 	logging.info('Fetching posts from database...')
 	posts = session.query(Post).order_by(Post.date)[:settings['data_size']['posts']]
 
-	
 	logging.info('Initializing SocialNetworkModel with %d posts', len(posts))
 	network_model = SocialNetworkModel(posts, settings['model']['step_duration'])
 
