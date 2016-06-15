@@ -1,7 +1,7 @@
 ---
 
 data_size:
-  posts: 1000
+  posts: 10
 
 model:
   step_duration: 14

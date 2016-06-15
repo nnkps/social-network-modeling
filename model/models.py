@@ -1,19 +1,27 @@
 from mesa import Model
 from mesa.time import RandomActivation
 from .agents import UserAgent
+from db.objects import Post, Comment, Author, Category
 
 import logging
 
 
 class SocialNetworkModel(Model):
 	"""A model of social network with some user agents"""
-	# TODO: pass more users' data from database to model
-	def __init__(self, posts, comments, step_duration):
+
+	def __init__(self, session, step_duration):
 		self.running = True
 		self.schedule = RandomActivation(self)
 		self.step_duration = step_duration
+		self.session = session
 
-		authors = {post.author for post in posts} | {comment.author for comment in comments}
+		posts = self.session.query(Post).all()
+		comments = self.session.query(Comment).all()
+		authors = self.session.query(Author).all()
+		categories = self.session.query(Category).all()
+
+		logging.info('Initializing SocialNetworkModel with %d posts, %d comments, %d authors and %d categories',
+			len(posts), len(comments), len(authors), len(categories))
 
 		for author in authors:
 			user_posts = list(filter(lambda post: post.author_id == author.id, posts))
