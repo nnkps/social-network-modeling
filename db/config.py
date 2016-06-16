@@ -11,6 +11,6 @@ ro_engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(
 
 ROSession = sessionmaker(bind=ro_engine)
 
-rw_engine = create_engine('sqlite:///foo.db')
+rw_engine = create_engine('sqlite:///simulation_data.db')
 
 RWSession = sessionmaker(bind=rw_engine)

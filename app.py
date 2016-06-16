@@ -3,6 +3,7 @@ import logging.config
 logging.config.fileConfig('logging.ini')
 
 import yaml
+
 from model.models import SocialNetworkModel
 from db.config import ROSession, RWSession, rw_engine
 from db.objects import Post, Comment, Author, Category, Base
@@ -11,11 +12,14 @@ from db.objects import Post, Comment, Author, Category, Base
 def clone_ro_to_rw(session, rw_session, settings):
 	# take subset of posts and authors from database
 	logging.info('Fetching posts from database...')
-	posts = session.query(Post).order_by(Post.date)[:settings['data_size']['posts']]
+	posts = session.query(Post).filter(Post.date >= '2005-12-09').order_by(Post.date)[:settings['data_size']['posts']]
 	posts_id = [post.id for post in posts]
 
 	logging.info('Fetching comments from database...')
 	comments = session.query(Comment).filter(Comment.post_id.in_(posts_id))
+
+	comments_without_category = list(filter(lambda comment: comment.post == None, comments))
+	logging.info('Comments without category %d', len(comments_without_category))
 
 	logging.info('Fetching authors from database...')
 	authors = {post.author for post in posts} | {comment.author for comment in comments}
@@ -40,8 +44,9 @@ def clone_ro_to_rw(session, rw_session, settings):
 
 if __name__ == '__main__':
 	settings = yaml.load(open('settings.yaml'))
-	# TODO: map postgres data to nosql? local sqlite? for later inserts
+
 	session = ROSession()
+
 	Base.metadata.drop_all(rw_engine)
 	Base.metadata.create_all(rw_engine)
 	rw_session = RWSession()
@@ -49,9 +54,10 @@ if __name__ == '__main__':
 	clone_ro_to_rw(session, rw_session, settings)
 	session.close()
 
-	network_model = SocialNetworkModel(rw_session, settings['model']['step_duration'])
+	network_model = SocialNetworkModel(rw_session,
+									   **settings['model'])
 
-	logging.info('Executing SocialNetworkModel step')
-	network_model.step()
+	logging.info('Executing SocialNetworkModel steps')
+	network_model.run_model()
 
 	rw_session.close()

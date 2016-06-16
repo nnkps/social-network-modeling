@@ -63,3 +63,6 @@ target/
 
 # Database credentials
 credentials.py
+
+# SQLite files
+simulation_data.db

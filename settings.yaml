@@ -4,4 +4,12 @@ data_size:
   posts: 10
 
 model:
-  step_duration: 14
+  step_duration: 7
+  step_count: 10
+  commenting_options:
+    weights:
+      category: 0.4
+      author: 0.4
+      popularity: 0.2
+    tresholds:
+      considered_percent_of_users: 0.3  

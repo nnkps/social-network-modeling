@@ -36,12 +36,12 @@ class Post(Base):
 
 	id = Column(Integer, Sequence('posts_id_seq'), primary_key=True)
 	date = Column(DateTime)
-	category_id = Column(Integer, ForeignKey('category.id'))
-	author_id = Column(Integer, ForeignKey('authors.id'))
+	category_id = Column(Integer, ForeignKey('category.id'), index=True)
+	author_id = Column(Integer, ForeignKey('authors.id'), index=True)
 
 	category = relationship('Category', back_populates='posts')
 	author = relationship('Author', back_populates='posts')
-	# comments = relationship('Comment', back_populates='post')
+	comments = relationship('Comment', back_populates='post')
 
 	def __repr__(self):
 		return '<Post(date={})>'.format(self.date)
@@ -52,10 +52,11 @@ class Comment(Base):
 
 	id = Column(Integer, Sequence('comments_id_seq'), primary_key=True)
 	date = Column(DateTime)
-	author_id = Column(Integer, ForeignKey('authors.id'))
-	post_id = Column(Integer, ForeignKey('posts.id'))
+	author_id = Column(Integer, ForeignKey('authors.id'), index=True)
+	post_id = Column(Integer, ForeignKey('posts.id'), index=True)
+
+	author = relationship('Author', back_populates='comments')
+	post = relationship('Post', back_populates='comments')
 
 	def __repr__(self):
 		return '<Comment(date={})>'.format(self.date)
-	author = relationship('Author', back_populates='comments')
-	# post = relationship('Post', back_populates='comments')
