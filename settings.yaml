@@ -11,5 +11,3 @@ model:
       category: 0.4
       author: 0.4
       popularity: 0.2
-    tresholds:
-      considered_percent_of_users: 0.3  

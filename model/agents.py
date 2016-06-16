@@ -30,13 +30,6 @@ class UserAgent(Agent):
 
 		return [item[0] for item in sorted_categories]
 
-	# def frequency_of_behaviour(self, behaviour_items):
-	# 	behaviour_items.sort(key=lambda item: item.date)
-	# 	if len(behaviour_items) > 1:
-	# 		first, last = behaviour_items[0], behaviour_items[-1]
-	# 		return len(behaviour_items) / ((last.date - first.date).days + 1)
-	# 	return 0
-
 	def number_of_posts(self, step_duration, frequency):
 		PROBABILIY = 0.8
 		DELTA = 2
@@ -79,7 +72,8 @@ class UserAgent(Agent):
 				
 				model.session.add(new_post)
 				self.posts.append(new_post)
-
+		
+		authors_count = len(model.authors)
 		# writing comments
 		for post in model.posts:
 			post_comments = post.comments
@@ -94,31 +88,29 @@ class UserAgent(Agent):
 				recent_user_comments_for_post = list(filter(is_recent, user_comments)) 
 				frequency_of_commenting = len(recent_user_comments_for_post) / period
 			else:
-				# recent_user_comments = filter(is_recent, self.comments)
+				recent_user_comments = filter(is_recent, self.comments)
 
-				# recent_user_comments_for_category = list(filter(lambda comment: comment.post.category_id == post.category_id,
-				# 								   		 		recent_user_comments))
-				# frequency_for_category = len(recent_user_comments_for_category) / period
+				recent_user_comments_for_category = list(filter(lambda comment: comment.post.category_id == post.category_id,
+												   		 		recent_user_comments))
+				frequency_for_category = len(recent_user_comments_for_category) / period
 				
-				# recent_user_comments_for_author = list(filter(lambda comment: comment.post.author_id == post.author_id,
-				# 									   		  recent_user_comments))
-				# frequency_for_author = len(recent_user_comments_for_author) / period
+				recent_user_comments_for_author = list(filter(lambda comment: comment.post.author_id == post.author_id,
+													   		  recent_user_comments))
+				frequency_for_author = len(recent_user_comments_for_author) / period
 
-				considered_percent_of_users = model.commenting_options['tresholds']['considered_percent_of_users']
 				# average number of comments per user?
-				recent_comments_count = ceil(len(list(filter(is_recent, post_comments))) / considered_percent_of_users * len(model.authors))
+				recent_post_comments = list(filter(is_recent, post_comments))
+				recent_comments_count = ceil(len(recent_post_comments) / authors_count)
 				frequency_for_popularity = recent_comments_count / period
 
-				# author_weight = model.commenting_options['weights']['author']
-				# category_weight = model.commenting_options['weights']['category']
-				# popularity_weight = model.commenting_options['weights']['popularity']
+				author_weight = model.commenting_options['weights']['author']
+				category_weight = model.commenting_options['weights']['category']
+				popularity_weight = model.commenting_options['weights']['popularity']
 
-				# frequency_of_commenting = (frequency_for_popularity * popularity_weight + \
-				# 	frequency_for_author * author_weight + \
-				# 	frequency_for_popularity * popularity_weight) / (author_weight + category_weight + popularity_weight)
+				frequency_of_commenting = (frequency_for_category * category_weight + \
+					frequency_for_author * author_weight + \
+					frequency_for_popularity * popularity_weight) / (author_weight + category_weight + popularity_weight)
 
-				# SLOW..
-				frequency_of_commenting = frequency_for_popularity
 
 			predicted_number_of_comments = self.number_of_posts(model.step_duration, frequency_of_commenting)
 
