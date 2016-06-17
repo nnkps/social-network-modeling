@@ -86,6 +86,7 @@ if __name__ == '__main__':
 	avg_commenting.plot()
 	plt.show()
 
+	logging.info('Creating csv for comments graph')
 	create_authors_graph('authors-comments.csv', network_model.posts)
 
 	rw_session.close()

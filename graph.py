@@ -6,7 +6,5 @@ def create_authors_graph(filename, posts):
 
 		for post in posts:
 			for comment in post.comments:
-				print (post.author_id, comment.author_id)
-
 				writer.writerow([post.author_id, comment.author_id])
 
