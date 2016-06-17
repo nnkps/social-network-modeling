@@ -3,10 +3,17 @@ import datetime
 
 from mesa import Model
 from mesa.time import RandomActivation
+from mesa.datacollection import DataCollector
 
 from .agents import UserAgent
 from db.objects import Post, Comment, Author, Category
 
+
+def compute_avg_number_of_comments(model):
+	return (model.number_of_comments - model.prev_number_of_comments) / len(model.schedule.agents)
+
+def compute_avg_number_of_posts(model):
+	return (model.number_of_posts - model.prev_number_of_posts) / len(model.schedule.agents)
 
 
 class SocialNetworkModel(Model):
@@ -20,6 +27,9 @@ class SocialNetworkModel(Model):
 		return self.start_date + datetime.timedelta(days=self.number_of_steps * self.step_duration)
 
 	def __init__(self, session, step_duration, step_count, commenting_options, verbose=True):
+		self.datacollector = DataCollector(model_reporters={
+			'Avg commenting per user': compute_avg_number_of_comments,
+			'Avg posting per user': compute_avg_number_of_posts})
 		self.running = True
 		self.schedule = RandomActivation(self)
 		self.session = session
@@ -59,11 +69,17 @@ class SocialNetworkModel(Model):
 
 	def step(self):
 		'''Advance the model by one step'''
+		self.datacollector.collect(self)
 		self.schedule.step()
 		self.number_of_steps += 1
 
 	def run_model(self):
 		'''Run model steps'''
+		self.number_of_comments = len(self.comments)
+		self.number_of_posts = len(self.posts)
+		self.prev_number_of_comments = 0
+		self.prev_number_of_posts = 0
+
 		for i in range(self.step_count):
 			if self.verbose:
 				logging.info('Executing %d step', i)
@@ -73,3 +89,9 @@ class SocialNetworkModel(Model):
 
 			self.posts = self.session.query(Post).all()
 			self.comments = self.session.query(Comment).all()
+
+			self.prev_number_of_comments = self.number_of_comments
+			self.number_of_comments = len(self.comments)
+
+			self.prev_number_of_posts = self.number_of_posts
+			self.number_of_posts = len(self.posts)

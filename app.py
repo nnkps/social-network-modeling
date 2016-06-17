@@ -4,6 +4,8 @@ logging.config.fileConfig('logging.ini')
 
 import yaml
 
+import matplotlib.pyplot as plt
+
 from model.models import SocialNetworkModel
 from db.config import ROSession, RWSession, rw_engine
 from db.objects import Post, Comment, Author, Category, Base
@@ -15,13 +17,10 @@ def clone_ro_to_rw(session, rw_session, settings):
 	posts = session.query(Post).filter(
 		Post.date.between(settings['data_options']['start_date'],
 						  settings['data_options']['end_date']))
-	logging.info(len(list(posts)))
 	posts_id = [post.id for post in posts]
 
 	logging.info('Fetching comments from database...')
 	comments = session.query(Comment).filter(Comment.post_id.in_(posts_id))
-
-	logging.info(len(list(comments)))
 
 	logging.info('Fetching authors from database...')
 	authors_id = {post.author_id for post in posts} | {comment.author_id for comment in comments}
@@ -44,6 +43,13 @@ def clone_ro_to_rw(session, rw_session, settings):
 
 	rw_session.commit()
 
+def show_comments_histogram(network_model):
+	plt.hist([len(agent.comments) for agent in network_model.schedule.agents])
+	plt.show()
+
+def show_posts_histogram(network_model):
+	plt.hist([len(agent.posts) for agent in network_model.schedule.agents])
+	plt.show()	
 
 if __name__ == '__main__':
 	settings = yaml.load(open('settings.yaml'))
@@ -59,8 +65,24 @@ if __name__ == '__main__':
 
 	network_model = SocialNetworkModel(rw_session,
 									   **settings['model'])
+	# Comments histogram for users
+	logging.info('Showing histogram for posting before simulation')
+	show_posts_histogram(network_model)
 
+	logging.info('Showing histogram for commenting before simulation')
+	show_comments_histogram(network_model)
+	
 	logging.info('Executing SocialNetworkModel steps')
 	network_model.run_model()
+
+	logging.info('Showing histogram for posting after simulation')
+	show_posts_histogram(network_model)
+
+	logging.info('Showing histogram for commenting after simulation')
+	show_comments_histogram(network_model)
+
+	avg_commenting = network_model.datacollector.get_model_vars_dataframe()
+	avg_commenting.plot()
+	plt.show()
 
 	rw_session.close()

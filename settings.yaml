@@ -6,7 +6,7 @@ data_options:
 
 model:
   step_duration: 7
-  step_count: 10
+  step_count: 5
   commenting_options:
     weights:
       category: 0.45
