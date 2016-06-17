@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from model.models import SocialNetworkModel
 from db.config import ROSession, RWSession, rw_engine
 from db.objects import Post, Comment, Author, Category, Base
+from graph import create_authors_graph
 
 
 def clone_ro_to_rw(session, rw_session, settings):
@@ -80,6 +81,8 @@ if __name__ == '__main__':
 
 	logging.info('Showing histogram for commenting after simulation')
 	show_comments_histogram(network_model)
+
+	create_authors_graph('authors-comments.csv', posts)
 
 	avg_commenting = network_model.datacollector.get_model_vars_dataframe()
 	avg_commenting.plot()
