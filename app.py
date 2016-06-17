@@ -44,13 +44,15 @@ def clone_ro_to_rw(session, rw_session, settings):
 
 	rw_session.commit()
 
-def show_comments_histogram(network_model):
+def show_comments_histogram(network_model, filename):
+	plt.clf()
 	plt.hist([len(agent.comments) for agent in network_model.schedule.agents])
-	plt.show()
+	plt.savefig(filename)
 
-def show_posts_histogram(network_model):
+def show_posts_histogram(network_model, filename):
+	plt.clf()
 	plt.hist([len(agent.posts) for agent in network_model.schedule.agents])
-	plt.show()	
+	plt.savefig(filename)
 
 if __name__ == '__main__':
 	settings = yaml.load(open('settings.yaml'))
@@ -68,23 +70,23 @@ if __name__ == '__main__':
 									   **settings['model'])
 	# Comments histogram for users
 	logging.info('Showing histogram for posting before simulation')
-	show_posts_histogram(network_model)
+	show_posts_histogram(network_model, 'posts_histogram_start.png')
 
 	logging.info('Showing histogram for commenting before simulation')
-	show_comments_histogram(network_model)
+	show_comments_histogram(network_model, 'comments_histogram_start.png')
 	
 	logging.info('Executing SocialNetworkModel steps')
 	network_model.run_model()
 
 	logging.info('Showing histogram for posting after simulation')
-	show_posts_histogram(network_model)
+	show_posts_histogram(network_model, 'posts_histogram_end.png')
 
 	logging.info('Showing histogram for commenting after simulation')
-	show_comments_histogram(network_model)
+	show_comments_histogram(network_model, 'comments_histogram_end.png')
 
 	avg_commenting = network_model.datacollector.get_model_vars_dataframe()
 	avg_commenting.plot()
-	plt.show()
+	plt.savefig('avg_commenting.png')
 
 	logging.info('Creating csv for comments graph')
 	create_authors_graph('authors-comments.csv', network_model.posts)
