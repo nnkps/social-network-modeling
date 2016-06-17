@@ -7,6 +7,7 @@ import yaml
 from model.models import SocialNetworkModel
 from db.config import ROSession, RWSession, rw_engine
 from db.objects import Post, Comment, Author, Category, Base
+from graph import create_authors_graph
 
 
 def clone_ro_to_rw(session, rw_session, settings):
@@ -40,6 +41,8 @@ def clone_ro_to_rw(session, rw_session, settings):
 		rw_session.add(Category(id=category.id, category_name=category.category_name))
 
 	rw_session.commit()
+
+	create_authors_graph('authors-comments.csv', posts)
 
 
 if __name__ == '__main__':
