@@ -82,10 +82,10 @@ if __name__ == '__main__':
 	logging.info('Showing histogram for commenting after simulation')
 	show_comments_histogram(network_model)
 
-	create_authors_graph('authors-comments.csv', posts)
-
 	avg_commenting = network_model.datacollector.get_model_vars_dataframe()
 	avg_commenting.plot()
 	plt.show()
+
+	create_authors_graph('authors-comments.csv', network_model.posts)
 
 	rw_session.close()
