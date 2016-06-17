@@ -1,13 +1,14 @@
 ---
 
-data_size:
-  posts: 10
+data_options:
+  start_date: '2009-03-09'
+  end_date: '2009-04-09'
 
 model:
   step_duration: 7
   step_count: 10
   commenting_options:
     weights:
-      category: 0.4
-      author: 0.4
-      popularity: 0.2
+      category: 0.45
+      author: 0.45
+      popularity: 0.1

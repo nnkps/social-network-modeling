@@ -62,9 +62,9 @@ class SocialNetworkModel(Model):
 		self.schedule.step()
 		self.number_of_steps += 1
 
-	def run_model(self, step_count=200):
+	def run_model(self):
 		'''Run model steps'''
-		for i in range(step_count):
+		for i in range(self.step_count):
 			if self.verbose:
 				logging.info('Executing %d step', i)
 

@@ -12,17 +12,20 @@ from db.objects import Post, Comment, Author, Category, Base
 def clone_ro_to_rw(session, rw_session, settings):
 	# take subset of posts and authors from database
 	logging.info('Fetching posts from database...')
-	posts = session.query(Post).filter(Post.date >= '2005-12-09').order_by(Post.date)[:settings['data_size']['posts']]
+	posts = session.query(Post).filter(
+		Post.date.between(settings['data_options']['start_date'],
+						  settings['data_options']['end_date']))
+	logging.info(len(list(posts)))
 	posts_id = [post.id for post in posts]
 
 	logging.info('Fetching comments from database...')
 	comments = session.query(Comment).filter(Comment.post_id.in_(posts_id))
 
-	comments_without_category = list(filter(lambda comment: comment.post == None, comments))
-	logging.info('Comments without category %d', len(comments_without_category))
+	logging.info(len(list(comments)))
 
 	logging.info('Fetching authors from database...')
-	authors = {post.author for post in posts} | {comment.author for comment in comments}
+	authors_id = {post.author_id for post in posts} | {comment.author_id for comment in comments}
+	authors = session.query(Author).filter(Author.id.in_(authors_id))
 
 	logging.info('Fetching categories from database...')
 	categories = session.query(Category).all()

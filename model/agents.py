@@ -48,8 +48,8 @@ class UserAgent(Agent):
 			return 0
 
 	def step(self, model):
-		period = model.step_duration * 2  # TODO: should be in settings
-		age_of_post = model.step_duration * 5
+		period = model.step_duration * 1  # TODO: should be in settings
+		age_of_post = model.step_duration * 1.4
 
 		def is_recent(item):
 			return item.date > model.current_date - datetime.timedelta(days=period)
@@ -116,9 +116,8 @@ class UserAgent(Agent):
 					frequency_for_author * author_weight + \
 					frequency_for_popularity * popularity_weight) / (author_weight + category_weight + popularity_weight)
 
-
-			predicted_number_of_comments = ceil(self.number_of_posts(model.step_duration, frequency_of_commenting) / \
-				(model.current_date - post.date).days**3)
+			frequency_of_commenting /= (model.current_date - post.date).days**3
+			predicted_number_of_comments = self.number_of_posts(model.step_duration, frequency_of_commenting)
 
 			for i in range(predicted_number_of_comments):
 				new_comment = Comment(author=self.user,
