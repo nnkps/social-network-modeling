@@ -64,7 +64,6 @@ if __name__ == '__main__':
 	rw_session = RWSession()
 
 	clone_ro_to_rw(session, rw_session, settings)
-	session.close()
 
 	network_model = SocialNetworkModel(rw_session,
 									   **settings['model'])
@@ -92,3 +91,17 @@ if __name__ == '__main__':
 	create_authors_graph('authors-comments.csv', network_model.posts)
 
 	rw_session.close()
+
+	# real dataframe
+	start_date = network_model.start_date
+	end_date = network_model.current_date
+
+	logging.info('Start date: {} and end date: {} of real dataframe'.format(
+		start_date, end_date))
+
+	real_posts = list(session.query(Post).filter(
+		Post.date.between(start_date,
+						  end_date)))
+	logging.info('Creating csv for comments graph with %d', len(real_posts))
+	create_authors_graph('authors-comments-real.csv', real_posts)
+	session.close()
