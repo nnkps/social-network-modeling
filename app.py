@@ -67,6 +67,12 @@ if __name__ == '__main__':
 
 	network_model = SocialNetworkModel(rw_session,
 									   **settings['model'])
+	with open('statistics', 'w') as f:
+		f.write('Number of authors: {}\n'.format(len(network_model.authors)))
+		f.write('Number of comments: {}\n'.format(len(network_model.comments)))
+		f.write('Number of posts: {}\n'.format(len(network_model.posts)))
+		f.write('Number of categories: {}\n'.format(len(network_model.categories)))
+
 	# Comments histogram for users
 	logging.info('Showing histogram for posting before simulation')
 	show_posts_histogram(network_model, 'posts_histogram_start.png')
@@ -93,7 +99,7 @@ if __name__ == '__main__':
 	rw_session.close()
 
 	# real dataframe
-	start_date = network_model.start_date
+	start_date = settings['data_options']['start_date']
 	end_date = network_model.current_date
 
 	logging.info('Start date: {} and end date: {} of real dataframe'.format(
@@ -102,6 +108,16 @@ if __name__ == '__main__':
 	real_posts = list(session.query(Post).filter(
 		Post.date.between(start_date,
 						  end_date)))
+
+
+	with open('statistics-end', 'w') as f:
+		f.write('Number of authors: {}\n'.format(len(network_model.authors)))
+		f.write('Number of comments: {}\n'.format(len(network_model.comments)))
+		f.write('Number of posts: {}\n'.format(len(network_model.posts)))
+		f.write('Number of categories: {}\n'.format(len(network_model.categories)))
+
+
+	logging.info('Real posts number: {}'.format(len(real_posts)))
 	logging.info('Creating csv for comments graph with %d', len(real_posts))
 	create_authors_graph('authors-comments-real.csv', real_posts)
 	session.close()

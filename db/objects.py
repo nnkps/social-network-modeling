@@ -52,8 +52,8 @@ class Comment(Base):
 
 	id = Column(Integer, Sequence('comments_id_seq'), primary_key=True)
 	date = Column(DateTime)
-	author_id = Column(Integer, ForeignKey('authors.id'), index=True)
-	post_id = Column(Integer, ForeignKey('posts.id'), index=True)
+	author_id = Column(Integer, ForeignKey('authors.id'))
+	post_id = Column(Integer, ForeignKey('posts.id'))
 
 	author = relationship('Author', back_populates='comments')
 	post = relationship('Post', back_populates='comments')

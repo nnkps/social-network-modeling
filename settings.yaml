@@ -1,12 +1,12 @@
 ---
 
 data_options:
-  start_date: '2014-03-09'
-  end_date: '2014-03-16'
+  start_date: '2011-01-15'
+  end_date: '2011-01-22'
 
 model:
   step_duration: 7
-  step_count: 5
+  step_count: 1
   commenting_options:
     weights:
       category: 0.45
