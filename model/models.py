@@ -22,9 +22,8 @@ class SocialNetworkModel(Model):
 	def _choose_max_date(self, items):
 		return sorted(items, key=lambda item: item.date, reverse=True)[0].date
 
-	@property
 	def current_date(self):
-		return self.start_date + datetime.timedelta(days=self.number_of_steps * self.step_duration)
+		return self.start_date + datetime.timedelta(days=self.number_of_steps * self.step_duration + 1)
 
 	def __init__(self, session, step_duration, step_count, commenting_options, verbose=True):
 		self.datacollector = DataCollector(model_reporters={

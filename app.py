@@ -2,7 +2,6 @@ import logging
 import logging.config
 logging.config.fileConfig('logging.ini')
 import os
-from functools import reduce
 from datetime import datetime, timedelta
 
 import yaml
@@ -66,9 +65,8 @@ def get_statistics(session, directory, start_date, end_date, authors_id):
 
 	with open(directory + '/statistics.yaml', 'w') as f:
 		print_to_file = lambda text: print(text, file=f)
-		get_only_date = lambda date: date.strftime('%Y-%m-%d') if isinstance(date, datetime) else date
-		print_to_file('Start date: {}'.format(get_only_date(start_date)))
-		print_to_file('End date: {}'.format(get_only_date(end_date)))
+		print_to_file('Start date: {}'.format(start_date))
+		print_to_file('End date: {}'.format(end_date))
 		print_to_file('Number of authors: {}'.format(len(authors_id)))
 		print_to_file('Number of comments: {}'.format(len(comments)))
 		print_to_file('Number of posts: {}'.format(len(posts)))
@@ -86,7 +84,8 @@ def get_statistics(session, directory, start_date, end_date, authors_id):
 		print_to_file('\tmax: {}'.format(comments_per_post[1]))
 		print_to_file('\tavg: {}'.format(comments_per_post[2]))
 	logging.info('Creating csv for comments graph with %d', len(posts))
-	create_authors_graph(directory + '/authors-comments.csv', posts)
+
+	create_authors_graph(directory + '/authors-comments.csv', comments)
 
 def clone_ro_to_rw(session, rw_session, settings):
 	# take subset of posts and authors from database
@@ -175,12 +174,10 @@ if __name__ == '__main__':
 	avg_commenting.plot()
 	plt.savefig('avg_commenting.png')
 
-	logging.info('Creating csv for comments graph')
-	create_authors_graph('authors-comments.csv', network_model.posts)
-
 	# get statistics
-	start_date = network_model.start_date
-	end_date = network_model.current_date
+
+	start_date = (network_model.start_date + timedelta(days=1)).strftime('%Y-%m-%d')
+	end_date = network_model.current_date().strftime('%Y-%m-%d')
 	authors_id = list(map(lambda author: author.id, network_model.authors))
 
 	# simulated dataframe

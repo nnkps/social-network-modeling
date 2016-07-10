@@ -9,6 +9,6 @@ model:
   step_count: 2
   commenting_options:
     weights:
-      category: 0.2
-      author: 0.4
+      category: 0.3
+      author: 0.3
       popularity: 0.4

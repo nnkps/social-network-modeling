@@ -54,7 +54,7 @@ class UserAgent(Agent):
 		age_of_post = model.step_duration * 1.4
 
 		def is_recent(item):
-			return item.date > model.current_date - datetime.timedelta(days=period)
+			return item.date > model.current_date() - datetime.timedelta(days=period)
 
 		# writing posts
 		if len(self.posts) > 0:  # we assume he is author of posts
@@ -68,76 +68,69 @@ class UserAgent(Agent):
 				for i in range(predicted_number_of_posts):
 					new_post = Post(author=self.user,
 									category=category,
-									date=model.current_date)
+									date=model.current_date())
 					model.session.add(new_post)
 					self.posts.append(new_post)
 
 		def is_not_old(post):
-			return post.date > model.current_date - datetime.timedelta(days=age_of_post)
+			return post.date > model.current_date() - datetime.timedelta(days=age_of_post)
 
 		authors_count = len(model.authors)
 		# writing comments
 
 		# if random.random() > propability_of_commenting:
 
-		if len(self.comments) > 0:  # if agent has commented earlier, we assume he is commenter
-			# posts = list(filter(is_not_old, model.posts))
-		# # logging.info('Number of posts: {}'.format(len(posts)))
+		posts = list(filter(is_not_old, model.posts))
 
-			posts = list(model.session.query(Post).filter(
-				Post.date.between(
-					model.current_date - datetime.timedelta(days=age_of_post),
-					model.current_date - datetime.timedelta(days=1))))
-			# logging.info('Number of db posts: {}'.format(len(posts)))
+		for post in posts:
+			post_comments = post.comments
+			user_comments = list(filter(lambda comment: comment.author_id == self.unique_id,
+								   		post_comments))
 
-			for post in posts:
-				post_comments = post.comments
-				user_comments = list(filter(lambda comment: comment.author_id == self.unique_id,
-									   		post_comments))
+			predicted_number_of_comments = 0
+			
+			if len(user_comments) > 0:
+				# user already commented this post
+				# TODO: consider date of post, if it's old then it's not commented anymore
+				recent_user_comments_for_post = list(filter(is_recent, user_comments)) 
+				frequency_of_commenting = len(recent_user_comments_for_post) / period
 
-				predicted_number_of_comments = 0
+			else:
+				recent_user_comments = filter(is_recent, self.comments)
+
+				recent_user_comments_for_category = list(filter(lambda comment: comment.post.category_id == post.category_id,
+												   		 		recent_user_comments))
+
+				frequency_for_category = len(recent_user_comments_for_category) / period
 				
-				if len(user_comments) > 0:
-					# user already commented this post
-					# TODO: consider date of post, if it's old then it's not commented anymore
-					recent_user_comments_for_post = list(filter(is_recent, user_comments)) 
-					frequency_of_commenting = len(recent_user_comments_for_post) / period
+				recent_user_comments_for_author = list(filter(lambda comment: comment.post.author_id == post.author_id,
+													   		  recent_user_comments))
+				frequency_for_author = len(recent_user_comments_for_author) / period
+				# average number of comments per user?
+				recent_post_comments = list(filter(is_recent, post_comments))
+				recent_comments_count = ceil(len(recent_post_comments) / authors_count)
+				frequency_for_popularity = recent_comments_count / period
 
-				else:
-					recent_user_comments = filter(is_recent, self.comments)
+				author_weight = model.commenting_options['weights']['author']
+				category_weight = model.commenting_options['weights']['category']
+				popularity_weight = model.commenting_options['weights']['popularity']
 
-					recent_user_comments_for_category = list(filter(lambda comment: comment.post.category_id == post.category_id,
-													   		 		recent_user_comments))
+				frequency_for_popularity /= (model.current_date() - post.date).days**2
 
-					frequency_for_category = len(recent_user_comments_for_category) / period
-					
-					recent_user_comments_for_author = list(filter(lambda comment: comment.post.author_id == post.author_id,
-														   		  recent_user_comments))
-					frequency_for_author = len(recent_user_comments_for_author) / period
-					# average number of comments per user?
-					recent_post_comments = list(filter(is_recent, post_comments))
-					recent_comments_count = ceil(len(recent_post_comments) / authors_count)
-					frequency_for_popularity = recent_comments_count / period
+				frequency_of_commenting = (frequency_for_category * category_weight + \
+					frequency_for_author * author_weight + \
+					frequency_for_popularity * popularity_weight) / (author_weight + category_weight + popularity_weight)
 
-					author_weight = model.commenting_options['weights']['author']
-					category_weight = model.commenting_options['weights']['category']
-					popularity_weight = model.commenting_options['weights']['popularity']
+				
+				predicted_number_of_comments = self.number_of_posts(model.step_duration, frequency_of_commenting, probability=0.7)
+				for i in range(predicted_number_of_comments):
+				# if predicted_number_of_comments > 0:  # one comment instead of few
+					new_comment = Comment(author=self.user,
+										  post=post,
+										  date=model.current_date())
 
-					frequency_of_commenting = (frequency_for_category * category_weight + \
-						frequency_for_author * author_weight + \
-						frequency_for_popularity * popularity_weight) / (author_weight + category_weight + popularity_weight)
-
-					frequency_of_commenting /= (model.current_date - post.date).days**4
-					
-					predicted_number_of_comments = self.number_of_posts(model.step_duration, frequency_of_commenting, probability=0.7)
-					for i in range(predicted_number_of_comments):
-					# if predicted_number_of_comments > 0:  # one comment instead of few
-						new_comment = Comment(author=self.user,
-											  post=post,
-											  date=model.current_date)
-
-						model.session.add(new_comment)
-						self.comments.append(new_comment)
+					model.session.add(new_comment)
+					self.comments.append(new_comment)
 
 		if model.verbose:
 			logging.info('Step {}: User {} wrote {} posts and {} comments'
