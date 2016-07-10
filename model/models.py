@@ -19,8 +19,8 @@ def compute_avg_number_of_posts(model):
 class SocialNetworkModel(Model):
 	"""A model of social network with some user agents"""
 
-	def _choose_max_date(self, posts):
-		return sorted(posts, key=lambda post: post.date, reverse=True)[0].date
+	def _choose_max_date(self, items):
+		return sorted(items, key=lambda item: item.date, reverse=True)[0].date
 
 	@property
 	def current_date(self):
@@ -48,7 +48,7 @@ class SocialNetworkModel(Model):
 		self.comments = self.session.query(Comment).all()
 
 		self.number_of_steps = 0
-		self.start_date = self._choose_max_date(self.posts) + datetime.timedelta(days=1)
+		self.start_date = self._choose_max_date(self.posts + self.comments) + datetime.timedelta(days=1)
 
 		if self.verbose:
 			logging.info('Beginning of first step {}'.format(self.start_date))
@@ -71,6 +71,7 @@ class SocialNetworkModel(Model):
 		'''Advance the model by one step'''
 		self.datacollector.collect(self)
 		self.schedule.step()
+		self.session.commit()
 		self.number_of_steps += 1
 
 	def run_model(self):
@@ -85,7 +86,6 @@ class SocialNetworkModel(Model):
 				logging.info('Executing %d step', i)
 
 			self.step()
-			self.session.commit()
 
 			self.posts = self.session.query(Post).all()
 			self.comments = self.session.query(Comment).all()
